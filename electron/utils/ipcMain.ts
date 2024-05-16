@@ -1,5 +1,7 @@
 import type { BrowserWindow } from 'electron'
-import { app, dialog, ipcMain } from 'electron'
+import { app, ipcMain } from 'electron'
+import { deleteUploadData, insertUploadData, queryUploadData } from '../db/modules'
+import { autoStart } from './app'
 
 export function setupIpcMain(win: BrowserWindow) {
   ipcMain.on('window-min', () => {
@@ -24,21 +26,21 @@ export function setupIpcMain(win: BrowserWindow) {
     win.close()
   })
 
-  ipcMain.on('open-directory-dialog', (event, p) => {
-    dialog
-      .showOpenDialog({
-        properties: [p],
-        title: '请选择上传日志保存目录',
-        buttonLabel: '选择',
-      })
-      .then((result) => {
-        event.reply('selectedPath', result.filePaths[0])
-      })
+  ipcMain.on('auto-start', (_event, val) => {
+    autoStart(val)
   })
 
-  // 根据当前用户的操作系统，设置记录文件的默认保存路径
-  ipcMain.on('get-default-ur-file-path', (event) => {
-    const defaultPath = app.getPath('documents')
-    event.reply('get-default-ur-file-path-reply', defaultPath)
+  ipcMain.on('create-uploadData', (_event, dataString) => {
+    const data = JSON.parse(dataString)
+    insertUploadData(data)
+  })
+
+  ipcMain.on('get-uploadData', (event) => {
+    const data = queryUploadData()
+    event.reply('get-uploadData-status', data)
+  })
+
+  ipcMain.on('delete-uploadData', (_event, key) => {
+    deleteUploadData(key)
   })
 }

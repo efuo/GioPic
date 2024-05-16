@@ -1,32 +1,30 @@
 <script setup lang="ts">
 import { useAppStore } from './stores'
+import { routerPush } from './utils'
 
 const appStroe = useAppStore()
-// const router = useRouter()
-const { isMenuCollapsed, recordSavePath } = storeToRefs(appStroe)
-
-window.ipcRenderer.on('get-default-ur-file-path-reply', (_e, path) => {
-  recordSavePath.value = path
-})
-
-// 设置默认的上传记录文件存储路径
-if (!recordSavePath.value)
-  window.ipcRenderer.send('get-default-ur-file-path')
+const router = useRouter()
+const { isMenuCollapsed } = storeToRefs(appStroe)
 
 // router.beforeEach((to, from, next) => {
 
 // })
+
+onMounted(() => {
+  routerPush(router)
+})
 </script>
 
 <template>
   <Provider>
-    <n-layout hfull>
+    <n-layout position="absolute" :class="{ height: '100%' }">
       <n-layout-header bordered>
         <MainNav />
       </n-layout-header>
       <n-layout
-        has-sider wh-full position="absolute"
-        style="top:61px;"
+        has-sider
+        position="absolute"
+        style="top:61px; bottom:0; overflow: auto;"
       >
         <n-layout-sider
           bordered
@@ -41,14 +39,14 @@ if (!recordSavePath.value)
         >
           <Menu />
         </n-layout-sider>
-        <n-layout :native-scrollbar="false" class="hscreen" embedded>
-          <n-scrollbar style="height: calc(100vh - 60px);">
-            <RouterView v-slot="{ Component }" wh-full px6 pt6>
-              <Transition name="run" mode="out-in">
+        <n-layout content-style="padding: 24px;" :native-scrollbar="false">
+          <router-view v-slot="{ Component }">
+            <keep-alive>
+              <Transition name="router" mode="out-in">
                 <component :is="Component" />
               </Transition>
-            </RouterView>
-          </n-scrollbar>
+            </keep-alive>
+          </router-view>
         </n-layout>
       </n-layout>
     </n-layout>

@@ -9,21 +9,11 @@ import Components from 'unplugin-vue-components/vite'
 import AutoImport from 'unplugin-auto-import/vite'
 import UnoCSS from 'unocss/vite'
 import { NaiveUiResolver } from 'unplugin-vue-components/resolvers'
-import VueDevTools from 'vite-plugin-vue-devtools'
 
 export default defineConfig({
   resolve: {
     alias: {
       '~/': `${path.resolve(__dirname, 'src')}/`,
-    },
-  },
-  build: {
-    minify: 'terser',
-    terserOptions: {
-      compress: {
-        drop_console: true,
-        drop_debugger: true,
-      },
     },
   },
   plugins: [
@@ -35,7 +25,6 @@ export default defineConfig({
     }),
     vue(),
     UnoCSS(),
-    VueDevTools(),
     Components({
       dirs: ['src/components'],
       extensions: ['vue'],

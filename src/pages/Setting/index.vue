@@ -1,21 +1,22 @@
 <script setup lang="ts">
-import { NButton, NInput, NInputGroup, NSelect, NSwitch, useOsTheme } from 'naive-ui'
+import { NButton, NInput, NSelect, NSwitch, useOsTheme } from 'naive-ui'
 import { getLinkTypeOptions } from '~/utils'
 import { useAppStore } from '~/stores'
+import type { TabOption } from '~/types'
 
 const appStore = useAppStore()
 const {
   appCloseTip,
   appCloseType,
+  autoStart,
   themeType,
   themeAuto,
   imgLinkFormatVal,
-  recordSavePath,
 } = storeToRefs(appStore)
 const osThemeRef = useOsTheme()
 const shortcutKeys = ref('')
 
-const tabsOptions = [
+const tabsOptions: TabOption[] = [
   {
     title: '常规',
     items: [
@@ -71,6 +72,19 @@ const tabsOptions = [
     title: '系统',
     items: [
       {
+        name: '是否开机自启动',
+        component: () => {
+          return h(NSwitch, {
+            value: autoStart.value,
+            round: false,
+            onUpdateValue: (val: boolean) => {
+              autoStart.value = val
+              window.ipcRenderer.send('auto-start', val)
+            },
+          })
+        },
+      },
+      {
         name: '关闭程序时',
         component: () => {
           return h(NSelect, {
@@ -98,28 +112,6 @@ const tabsOptions = [
           })
         },
       },
-      {
-        name: '上传记录文件存储路径',
-        width: 400,
-        component: () => {
-          return h(NInputGroup, {}, {
-            default: () => [
-              h(NInput, {
-                value: recordSavePath.value,
-                placeholder: '请点击选择上传记录文件存储路径',
-                readonly: true,
-                onClick: handleSelectPath,
-              }),
-              h(NButton, {
-                ghost: true,
-                onClick: handleSelectPath,
-              }, {
-                default: () => '选择路径',
-              }),
-            ],
-          })
-        },
-      },
     ],
   },
   {
@@ -127,6 +119,7 @@ const tabsOptions = [
     items: [
       {
         name: '上传图片',
+        isDev: true,
         component: () => {
           return h(NInput, {
             value: shortcutKeys.value,
@@ -157,13 +150,6 @@ const tabsOptions = [
     ],
   },
 ]
-
-function handleSelectPath() {
-  window.ipcRenderer.send('open-directory-dialog', 'openDirectory')
-  window.ipcRenderer.on('selectedPath', (_e, files) => {
-    recordSavePath.value = files
-  })
-}
 </script>
 
 <template>
@@ -182,9 +168,7 @@ function handleSelectPath() {
           :name="tab.title"
           :tab="tab.title"
         >
-          <n-scrollbar style="height: calc(100vh - 220px);">
-            <SetItem :title="tab.title" :items="tab.items" />
-          </n-scrollbar>
+          <SetItem :title="tab.title" :items="tab.items" />
         </n-tab-pane>
       </n-tabs>
     </div>
